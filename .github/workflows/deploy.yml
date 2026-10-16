@@ -27,7 +27,6 @@ jobs:
         run: |
           pytest
         env:
-          DATABASE_URL: sqlite:///:memory:
           OPENROUTER_API_KEY: "dummy-key-for-tests"
 
   build:
