@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-code
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Sports Scoreboard</title>
+        <style>
+            body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+            .card { border: 1px solid #ccc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+            form { display: grid; gap: 0.5rem; }
+        </style>
+    </head>
+    <body>
+        <h1>Sports League Scoreboard</h1>
+
+        <div class="card">
+            <h2>Add Match & Generate Recap</h2>
+            <form id="matchForm">
+                <input type="text" id="home_team" placeholder="Home Team" required value="Arsenal">
+                <input type="text" id="away_team" placeholder="Away Team" required value="Chelsea">
+                <input type="number" id="home_score" placeholder="Home Score" required value="2">
+                <input type="number" id="away_score" placeholder="Away Score" required value="1">
+                <input type="text" id="match_date" placeholder="Date" required value="Sept 2026">
+                <button type="submit">Save & Generate</button>
+            </form>
+        </div>
+
+        <h2>Match History</h2>
+        <div id="matches"></div>
+
+        <script>
+            // В продакшене фронтенд обращается к бэкенду через относительный путь или прокси /api
+            const API_URL = "/api/v1/matches";
+
+            async function loadMatches() {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const container = document.getElementById("matches");
+                container.innerHTML = data.map(m => `
+                    <div class="card">
+                        <h3>${m.home_team} ${m.home_score} - ${m.away_score} ${m.away_team}</h3>
+                        <small>${m.match_date} | Model: ${m.model_used}</small>
+                        <p>${m.recap}</p>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById("matchForm").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const body = {
+                    home_team: document.getElementById("home_team").value,
+                    away_team: document.getElementById("away_team").value,
+                    home_score: parseInt(document.getElementById("home_score").value),
+                    away_score: parseInt(document.getElementById("away_score").value),
+                    match_date: document.getElementById("match_date").value,
+                    scorers: []
+                };
+                await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+                loadMatches();
+            });
+
+            loadMatches();
+        </script>
+    </body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html-volume
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: html-volume
+          configMap:
+            name: frontend-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP

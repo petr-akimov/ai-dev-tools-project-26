@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv and dependencies
+        run: |
+          pip install uv
+          uv pip install --system -e ".[dev]"
+
+      - name: Run linter and tests
+        run: |
+          pytest
+        env:
+          DATABASE_URL: sqlite:///:memory:
+          OPENROUTER_API_KEY: "dummy-key-for-tests"
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.sha_short }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract short commit hash
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push with Kaniko
+        uses: GoogleContainerTools/kaniko-project-executor@v3
+        with:
+          context: .
+          dockerfile: Dockerfile
+          destination: |
+            petrakimovdocker/scoreboard:latest
+            petrakimovdocker/scoreboard:${{ steps.vars.outputs.sha_short }}
+        env:
+          # Передаем готовый конфиг Docker Hub через секрет DOCKER_CONFIG_JSON
+          # Kaniko ищет авторизацию в файле /kaniko/.docker/config.json
+          DOCKER_CONFIG: ${{ secrets.DOCKER_CONFIG_JSON }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure Kubernetes Cluster
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_DATA }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy manifests to Kubernetes
+        run: |
+          kubectl apply -f k8s/

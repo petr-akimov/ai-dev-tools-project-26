@@ -1,0 +1,48 @@
+[project]
+name = "sports-scoreboard-ai-project1"
+version = "0.1.0"
+description = "Sports League Scoreboard AI application for Project1"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "sqlalchemy>=2.0.35",
+    "pydantic>=2.9.0",
+    "openai>=1.50.0",
+    "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "httpx>=0.27.2",
+    "starlette>=0.40.0",
+    "anyio>=4.6.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+]
+
+# Отключает сборку wheel-пакета
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+filterwarnings = [
+    "ignore::DeprecationWarning:starlette.testclient",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "backend"
+explicit_package_bases = true
+ignore_missing_imports = true

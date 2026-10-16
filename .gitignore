@@ -1,0 +1,17 @@
+.key.txt
+*.tmp
+.*.tmp
+.terraform
+.terraform.lock.hcl
+terraform.tfvars
+.venv
+venv
+*~
+.*~
+*.db
+uv.lock
+env.sh
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfstate.lock.info
+configmap-secret.yaml
