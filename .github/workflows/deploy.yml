@@ -21,7 +21,7 @@ jobs:
       - name: Install uv and dependencies
         run: |
           pip install uv
-          uv pip install --system -e ".[dev]"
+          uv pip install --system fastapi uvicorn[standard] sqlalchemy pydantic openai python-dotenv pytest httpx starlette anyio ruff mypy
 
       - name: Run linter and tests
         run: |
