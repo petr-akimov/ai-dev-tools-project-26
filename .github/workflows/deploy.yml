@@ -52,8 +52,6 @@ jobs:
             petrakimovdocker/scoreboard:latest
             petrakimovdocker/scoreboard:${{ steps.vars.outputs.sha_short }}
         env:
-          # Передаем готовый конфиг Docker Hub через секрет DOCKER_CONFIG_JSON
-          # Kaniko ищет авторизацию в файле /kaniko/.docker/config.json
           DOCKER_CONFIG: ${{ secrets.DOCKER_CONFIG_JSON }}
 
   deploy:
@@ -77,4 +75,4 @@ jobs:
 
       - name: Deploy manifests to Kubernetes
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -f k8s
