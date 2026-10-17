@@ -210,7 +210,7 @@ data "external" "ingress_ip" {
     set -e
     # Ждём, пока балансировщик получит IP (до 5 минут)
     for i in $(seq 1 30); do
-      IP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx \
+      IP=$(kubectl get svc ingress-nginx-controller -n ingress \
         -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
       if [ -n "$IP" ] && [ "$IP" != "<pending>" ]; then
         echo "{\"ip\":\"$IP\"}"
@@ -218,7 +218,7 @@ data "external" "ingress_ip" {
       fi
       sleep 10
     done
-    echo "Timeout waiting for ingress IP" >&2
+    echo "Timeout waiting for ingress IP (svc=$SVC ns=$NS)" >&2
     exit 1
   EOT
   ]

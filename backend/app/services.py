@@ -13,9 +13,8 @@ def get_openai_client() -> AsyncOpenAI:
     return AsyncOpenAI(base_url=base_url, api_key=api_key)
 
 async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
-    client = get_openai_client()
-    model_name = os.getenv("OPENROUTER_MODEL", "inclusionai/ling-3.0-flash-vl:free")
-
+    model_name = os.getenv("OPENROUTER_MODEL", "openrouter/free")
+    
     home_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.home_team]
     away_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.away_team]
 
@@ -27,19 +26,24 @@ async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
         f"Key details: {match.summary_notes or 'Standard match flow.'}"
     )
 
-    system_prompt = (
-        "You are an expert sports journalist. "
-        "Write a 2-3 sentence match recap strictly based ONLY on the provided match stats."
-    )
+    try:
+        client = get_openai_client()
+        system_prompt = (
+            "An expert sports journalist. "
+            "Write a 2-3 sentence match recap strictly based ONLY on the provided match stats."
+        )
 
-    response = await client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": context},
-        ],
-        temperature=0.5,
-        max_tokens=250,
-    )
-
-    return response.choices[0].message.content or "", model_name
+        response = await client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": context},
+            ],
+            temperature=0.5,
+            max_tokens=250,
+        )
+        return response.choices[0].message.content or "", model_name
+    except Exception as e:
+        # Fallback-режим, если ИИ недоступен или заблокирован политикой
+        fallback_recap = f"Match played between {match.home_team} and {match.away_team} ended with a score of {match.home_score}-{match.away_score}."
+        return fallback_recap, "fallback-local"    
