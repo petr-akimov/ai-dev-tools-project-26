@@ -172,3 +172,75 @@ output "kube_config_file" {
   value     = base64decode(data.cloudru_evolution_mk8s_kube_config_collection.datasource_kube_config.kube_config.config)
   sensitive = true
 }
+
+# 1. Генерация ~/.kube/config из terraform output
+# 2. Извлечение IP ingress-контроллера через kubectl
+# 3. Создание DNS A-записи www.pa99.online
+
+# --- 1. Генерация kubeconfig ---
+resource "null_resource" "kubeconfig" {
+  # Пересоздаём, если меняются креды или кластер
+  triggers = {
+    cluster_id   = cloudru_evolution_mk8s_cluster.resource_cluster.id
+    auth_key_id  = var.auth_key_id
+    auth_secret  = var.auth_secret
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    command     = <<-EOT
+      set -e
+      mkdir -p ~/.kube
+      terraform output -raw kube_config_file \
+        | sed -E \
+            -e "/name: CLOUDRU_KEY_ID/{n;s|value:.*|value: \"${var.auth_key_id}\"|}" \
+            -e "/name: CLOUDRU_SECRET_ID/{n;s|value:.*|value: \"${var.auth_secret}\"|}" \
+        > ~/.kube/config
+      chmod 600 ~/.kube/config
+      echo "kubeconfig written to ~/.kube/config"
+    EOT
+  }
+
+  depends_on = [cloudru_evolution_mk8s_cluster_addon.resource_cluster_addon]
+}
+
+# --- 2. Извлечение IP ingress-контроллера ---
+data "external" "ingress_ip" {
+  program = ["bash", "-c", <<-EOT
+    set -e
+    # Ждём, пока балансировщик получит IP (до 5 минут)
+    for i in $(seq 1 30); do
+      IP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx \
+        -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || true)
+      if [ -n "$IP" ] && [ "$IP" != "<pending>" ]; then
+        echo "{\"ip\":\"$IP\"}"
+        exit 0
+      fi
+      sleep 10
+    done
+    echo "Timeout waiting for ingress IP" >&2
+    exit 1
+  EOT
+  ]
+
+  depends_on = [null_resource.kubeconfig]
+}
+
+# --- 3. DNS A-запись ---
+resource "cloudru_evolution_dns_public_zone" "pa99" {
+  project_id  = var.project_id
+  name        = "pa99.online."
+  domain      = "pa99.online."
+  description = "Public DNS zone for pa99.online"
+
+  records = [
+    {
+      name   = "www"
+      type   = "a"
+      ttl    = 300
+      values = [data.external.ingress_ip.result["ip"]]
+    }
+  ]
+
+  depends_on = [data.external.ingress_ip]
+}
