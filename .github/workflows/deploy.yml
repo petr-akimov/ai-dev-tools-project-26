@@ -61,30 +61,40 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-      needs: build-and-push
-      runs-on: ubuntu-latest
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        - name: Set up kubectl
-          uses: azure/setup-kubectl@v3
-          with:
-            version: 'latest'
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
 
-        - name: Configure Kubernetes Cluster
-          run: |
-            mkdir -p ~/.kube
-            echo "${{ secrets.KUBECONFIG_DATA }}" > ~/.kube/config
-            chmod 600 ~/.kube/config
+      - name: Install Cloud.ru CLI (cloudlogin)
+        run: |
+          # Установка утилиты cloudlogin для аутентификации в Managed Kubernetes Cloud.ru
+          curl -sSL https://gpull.cloud.ru/cloudlogin/install.sh | bash || {
+            # Альтернативная установка или скачивание, если скрипт недоступен
+            echo "Installing cloudlogin manually..."
+            wget https://gpull.cloud.ru/cloudlogin/cloudlogin-linux-amd64 -O /usr/local/bin/cloudlogin
+            chmod +x /usr/local/bin/cloudlogin
+          }
 
-        - name: Generate Secret Manifest from Template
-          env:
-            GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
-          run: |
-            envsubst < k8s/configmap-secret.yaml.template > k8s/configmap-secret.yaml
- 
-        - name: Deploy manifests to Kubernetes
-          run: |
-            kubectl apply -f k8s
+      - name: Configure Kubernetes Cluster
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_DATA }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Generate Secret Manifest from Template
+        env:
+          GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
+        run: |
+          envsubst < k8s/configmap-secret.yaml.template > k8s/configmap-secret.yaml
+
+      - name: Deploy manifests to Kubernetes
+        run: |
+          kubectl apply -f k8s
