@@ -97,7 +97,7 @@ jobs:
         env:
           GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
         run: |
-          envsubst < k8s/configmap-secret.yaml.template > k8s/configmap-secret.yaml
+          envsubst '$GIGACHAT_API_KEY' < k8s/configmap-secret.yaml.template > k8s/configmap-secret.yaml
 
       - name: Deploy manifests to Kubernetes
         run: |
