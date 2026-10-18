@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: petrakimovdocker/scoreboard:latest
+          image: petrakimovdocker/scifi_stories:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

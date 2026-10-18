@@ -1,30 +1,23 @@
-from typing import List, Optional
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
 
-from pydantic import BaseModel, ConfigDict, Field
+
+class StoryCreate(BaseModel):
+    title: str
+    heroes: str
+    when_happens: str
+    where_happens: str
+    summary: str
 
 
-class GoalScorer(BaseModel):
-    player: str
-    minute: int = Field(..., ge=1, le=120)
-    team: str
-
-class MatchCreate(BaseModel):
-    home_team: str
-    away_team: str
-    home_score: int = Field(..., ge=0)
-    away_score: int = Field(..., ge=0)
-    match_date: str
-    scorers: List[GoalScorer] = []
-    summary_notes: Optional[str] = None
-
-class MatchResponse(BaseModel):
+class StoryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    home_team: str
-    away_team: str
-    home_score: int
-    away_score: int
-    match_date: str
-    recap: Optional[str] = None
+    title: str
+    heroes: str
+    when_happens: str
+    where_happens: str
+    summary: str
+    ai_story: Optional[str] = None
     model_used: Optional[str] = None

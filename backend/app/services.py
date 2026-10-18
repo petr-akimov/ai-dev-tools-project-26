@@ -1,35 +1,32 @@
 import os
 from gigachat import GigaChat
+from .schemas import StoryCreate
 
-from .schemas import MatchCreate
 
-
-def generate_recap_service_sync(match: MatchCreate) -> tuple[str, str]:
+def generate_story_service_sync(story: StoryCreate) -> tuple[str, str]:
     # Retrieve GigaChat configuration from environment variables
     auth_key = os.getenv("GIGACHAT_AUTH_KEY")
     model_name = os.getenv("GIGACHAT_MODEL", "GigaChat-2")
 
     if not auth_key:
         # Fallback if authorization key is missing
-        fallback_recap = (
-            f"Match played between {match.home_team} and {match.away_team} "
-            f"ended with a score of {match.home_score}-{match.away_score}."
+        fallback_story = (
+            f"Story '{story.title}'. In {story.when_happens} at {story.where_happens}, "
+            f"heroes ({story.heroes}) faced the following events: {story.summary}."
         )
-        return fallback_recap, "fallback-local"
+        return fallback_story, "fallback-local"
 
-    home_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.home_team]
-    away_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.away_team]
-
+    # Build context prompt for the model in English
     context = (
-        f"Match: {match.home_team} vs {match.away_team} ({match.match_date}). "
-        f"Final Score: {match.home_score}-{match.away_score}. "
-        f"{match.home_team} goals: {', '.join(home_goals) if home_goals else 'None'}. "
-        f"{match.away_team} goals: {', '.join(away_goals) if away_goals else 'None'}. "
-        f"Key details: {match.summary_notes or 'Standard match flow.'}"
+        f"Title: {story.title}\n"
+        f"When: {story.when_happens}\n"
+        f"Where: {story.where_happens}\n"
+        f"Heroes: {story.heroes}\n"
+        f"Plot summary: {story.summary}"
     )
 
     try:
-        # Initialize GigaChat client with self-signed SSL verification disabled
+        # Initialize GigaChat client
         with GigaChat(
             credentials=auth_key,
             scope="GIGACHAT_API_PERS",
@@ -37,25 +34,26 @@ def generate_recap_service_sync(match: MatchCreate) -> tuple[str, str]:
             verify_ssl_certs=False
         ) as client:
             system_prompt = (
-                "An expert sports journalist. "
-                "Write a 2-3 sentence match recap strictly based ONLY on the provided match stats."
+                "You are an expert sci-fi fiction writer. "
+                "Write an engaging, detailed, and immersive science fiction short story "
+                "strictly based on the provided input data."
             )
-            
-            # Send completion request
+
+            # Send completion request to GigaChat-2
             response = client.chat(f"{system_prompt}\n\n{context}")
-            recap_text = response.choices[0].message.content if response.choices else ""
-            return recap_text, model_name
+            story_text = response.choices[0].message.content if response.choices else ""
+            return story_text, model_name
 
     except Exception as e:
-        # Fallback mode if GigaChat API is unreachable or fails
+        # Fallback mode if GigaChat API fails or is unreachable
         print(f"GigaChat service error: {e}")
-        fallback_recap = (
-            f"Match played between {match.home_team} and {match.away_team} "
-            f"ended with a score of {match.home_score}-{match.away_score}."
+        fallback_story = (
+            f"Story '{story.title}'. In {story.when_happens} at {story.where_happens}, "
+            f"heroes ({story.heroes}) faced the following events: {story.summary}."
         )
-        return fallback_recap, "fallback-local"
+        return fallback_story, "fallback-local"
 
 
-async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
-    # Wrapper function for asynchronous service execution
-    return generate_recap_service_sync(match)
+async def generate_story_service(story: StoryCreate) -> tuple[str, str]:
+    # Asynchronous wrapper for the synchronous GigaChat service call
+    return generate_story_service_sync(story)

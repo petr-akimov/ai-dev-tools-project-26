@@ -1,17 +1,17 @@
 from typing import List
-
 from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .database import Base, engine, get_db
-from .models import MatchModel
-from .schemas import MatchCreate, MatchResponse
-from .services import generate_recap_service
+from .models import StoryModel
+from .schemas import StoryCreate, StoryResponse
+from .services import generate_story_service
 
+# Create database tables automatically on startup
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Sports League Scoreboard API")
+app = FastAPI(title="Sci-Fi Stories Generator API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,29 +21,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 def health_check():
+    # Health check endpoint for container probes and monitoring
     return {"status": "ok"}
 
-@app.get("/api/v1/matches", response_model=List[MatchResponse])
-def list_matches(db: Session = Depends(get_db)):
-    return db.query(MatchModel).order_by(MatchModel.id.desc()).all()
 
-@app.post("/api/v1/matches", response_model=MatchResponse, status_code=status.HTTP_201_CREATED)
-async def create_match(match: MatchCreate, db: Session = Depends(get_db)):
-    recap_text, model_used = await generate_recap_service(match)
-    
-    db_match = MatchModel(
-        home_team=match.home_team,
-        away_team=match.away_team,
-        home_score=match.home_score,
-        away_score=match.away_score,
-        match_date=match.match_date,
-        recap=recap_text,
-        model_used=model_used
+@app.get("/api/v1/stories", response_model=List[StoryResponse])
+def list_stories(db: Session = Depends(get_db)):
+    # Retrieve all generated sci-fi chronicles from SQLite database
+    return db.query(StoryModel).order_by(StoryModel.id.desc()).all()
+
+
+@app.post("/api/v1/stories", response_model=StoryResponse, status_code=status.HTTP_201_CREATED)
+async def create_story(story_in: StoryCreate, db: Session = Depends(get_db)):
+    # Generate sci-fi story text using GigaChat-2 service
+    ai_text, model_used = await generate_story_service(story_in)
+
+    # Save record to database
+    db_story = StoryModel(
+        title=story_in.title,
+        heroes=story_in.heroes,
+        when_happens=story_in.when_happens,
+        where_happens=story_in.where_happens,
+        summary=story_in.summary,
+        ai_story=ai_text,
+        model_used=model_used,
     )
-    db.add(db_match)
+    db.add(db_story)
     db.commit()
-    db.refresh(db_match)
-    return db_match
-    
+    db.refresh(db_story)
+    return db_story
