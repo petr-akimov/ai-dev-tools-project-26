@@ -21,19 +21,17 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install --system fastapi uvicorn[standard] sqlalchemy pydantic openai python-dotenv pytest httpx starlette anyio ruff mypy
+          uv pip install --system fastapi uvicorn[standard] sqlalchemy pydantic gigachat python-dotenv pytest httpx starlette anyio ruff mypy
 
       - name: Run linter and tests
         run: |
           pytest
         env:
-          OPENROUTER_API_KEY: "dummy-key-for-tests"
+          GIGACHAT_AUTH_KEY: "dummy-key-for-tests"
 
   build-and-push:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,20 +40,25 @@ jobs:
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Log in to Docker Hub (to create config.json for Kaniko)
+      - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: petrakimovdocker
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
-      - name: Build and push with Kaniko
-        uses: int128/kaniko-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
+          context: .
           push: true
           tags: |
-            petrakimovdocker/scoreboard:latest
-            petrakimovdocker/scoreboard:${{ steps.vars.outputs.sha_short }}
-          cache: true
+            petrakimovdocker/scifi_stories:latest
+            petrakimovdocker/scifi_stories:${{ steps.vars.outputs.sha_short }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build-and-push
