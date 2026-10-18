@@ -60,7 +60,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
+deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -78,6 +78,12 @@ jobs:
           mkdir -p ~/.kube
           echo "${{ secrets.KUBECONFIG_DATA }}" > ~/.kube/config
           chmod 600 ~/.kube/config
+
+      - name: Generate Secret Manifest from Template
+        env:
+          GIGACHAT_API_KEY: ${{ secrets.GIGACHAT_API_KEY }}
+        run: |
+          envsubst < k8s/configmap-secret.yaml.template > k8s/configmap-secret.yaml
 
       - name: Deploy manifests to Kubernetes
         run: |
