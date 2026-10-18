@@ -9,7 +9,7 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     "sqlalchemy>=2.0.35",
     "pydantic>=2.9.0",
-    "openai>=1.50.0",
+    "gigachat>=0.1.0",
     "python-dotenv>=1.0.1",
 ]
 
@@ -23,7 +23,7 @@ dev = [
     "mypy>=1.11.0",
 ]
 
-# Отключает сборку wheel-пакета
+# Disables building a wheel package
 [tool.uv]
 package = false
 

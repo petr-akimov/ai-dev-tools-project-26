@@ -30,21 +30,16 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: OPENROUTER_API_KEY
+            - name: GIGACHAT_AUTH_KEY
               valueFrom:
                 secretKeyRef:
                   name: scoreboard-secret
-                  key: OPENROUTER_API_KEY
-            - name: OPENROUTER_BASE_URL
+                  key: GIGACHAT_AUTH_KEY
+            - name: GIGACHAT_MODEL
               valueFrom:
                 configMapKeyRef:
                   name: scoreboard-config
-                  key: OPENROUTER_BASE_URL
-            - name: OPENROUTER_MODEL
-              valueFrom:
-                configMapKeyRef:
-                  name: scoreboard-config
-                  key: OPENRROUTER_MODEL
+                  key: GIGACHAT_MODEL
             - name: DATABASE_URL
               valueFrom:
                 configMapKeyRef:

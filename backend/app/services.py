@@ -1,20 +1,22 @@
 import os
-
-from openai import AsyncOpenAI
+from gigachat import GigaChat
 
 from .schemas import MatchCreate
 
 
-def get_openai_client() -> AsyncOpenAI:
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
-    if not api_key:
-        raise ValueError("OPENROUTER_API_KEY environment variable is missing")
-    return AsyncOpenAI(base_url=base_url, api_key=api_key)
+def generate_recap_service_sync(match: MatchCreate) -> tuple[str, str]:
+    # Retrieve GigaChat configuration from environment variables
+    auth_key = os.getenv("GIGACHAT_AUTH_KEY")
+    model_name = os.getenv("GIGACHAT_MODEL", "GigaChat-2")
 
-async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
-    model_name = os.getenv("OPENROUTER_MODEL", "openrouter/free")
-    
+    if not auth_key:
+        # Fallback if authorization key is missing
+        fallback_recap = (
+            f"Match played between {match.home_team} and {match.away_team} "
+            f"ended with a score of {match.home_score}-{match.away_score}."
+        )
+        return fallback_recap, "fallback-local"
+
     home_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.home_team]
     away_goals = [f"{s.player} {s.minute}'" for s in match.scorers if s.team == match.away_team]
 
@@ -27,23 +29,33 @@ async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
     )
 
     try:
-        client = get_openai_client()
-        system_prompt = (
-            "An expert sports journalist. "
-            "Write a 2-3 sentence match recap strictly based ONLY on the provided match stats."
-        )
-
-        response = await client.chat.completions.create(
+        # Initialize GigaChat client with self-signed SSL verification disabled
+        with GigaChat(
+            credentials=auth_key,
+            scope="GIGACHAT_API_PERS",
             model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": context},
-            ],
-            temperature=0.5,
-            max_tokens=250,
-        )
-        return response.choices[0].message.content or "", model_name
+            verify_ssl_certs=False
+        ) as client:
+            system_prompt = (
+                "An expert sports journalist. "
+                "Write a 2-3 sentence match recap strictly based ONLY on the provided match stats."
+            )
+            
+            # Send completion request
+            response = client.chat(f"{system_prompt}\n\n{context}")
+            recap_text = response.choices[0].message.content if response.choices else ""
+            return recap_text, model_name
+
     except Exception as e:
-        # Fallback-режим, если ИИ недоступен или заблокирован политикой
-        fallback_recap = f"Match played between {match.home_team} and {match.away_team} ended with a score of {match.home_score}-{match.away_score}."
-        return fallback_recap, "fallback-local"    
+        # Fallback mode if GigaChat API is unreachable or fails
+        print(f"GigaChat service error: {e}")
+        fallback_recap = (
+            f"Match played between {match.home_team} and {match.away_team} "
+            f"ended with a score of {match.home_score}-{match.away_score}."
+        )
+        return fallback_recap, "fallback-local"
+
+
+async def generate_recap_service(match: MatchCreate) -> tuple[str, str]:
+    # Wrapper function for asynchronous service execution
+    return generate_recap_service_sync(match)

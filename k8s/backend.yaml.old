@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlite-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: petrakimovdocker/scoreboard:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: scoreboard-secret
+                  key: OPENROUTER_API_KEY
+            - name: OPENROUTER_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scoreboard-config
+                  key: OPENROUTER_BASE_URL
+            - name: OPENROUTER_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: scoreboard-config
+                  key: OPENROUTER_MODEL
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scoreboard-config
+                  key: DATABASE_URL
+          volumeMounts:
+            - name: sqlite-storage
+              mountPath: /app/data
+      volumes:
+        - name: sqlite-storage
+          persistentVolumeClaim:
+            claimName: sqlite-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
