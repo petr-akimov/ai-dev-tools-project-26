@@ -1,7 +1,7 @@
 [project]
-name = "sports-scoreboard-ai-project1"
+name = "Sci-fi stories writer"
 version = "0.1.0"
-description = "Sports League Scoreboard AI application for Project1"
+description = "Sci-fi stories writer AI application for Project1"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
