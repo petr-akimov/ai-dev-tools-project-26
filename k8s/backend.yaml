@@ -25,18 +25,20 @@ data:
     processors:
       batch:
     exporters:
-      logging:
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+      debug:
         verbosity: detailed
     service:
       pipelines:
         traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [logging]
+          exporters: [debug]
         metrics:
           receivers: [otlp]
           processors: [batch]
-          exporters: [logging]
+          exporters: [prometheus, debug]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -55,14 +57,14 @@ spec:
       containers:
         - name: otel-collector
           image: otel/opentelemetry-collector-contrib:latest
-          command: ["--config=/etc/otel-collector-config.yaml"]
+          args: ["--config=/etc/otel-collector/otel-collector-config.yaml"]
           ports:
             - containerPort: 4317
             - containerPort: 4318
+            - containerPort: 8889
           volumeMounts:
             - name: otel-config-vol
-              mountPath: /etc/otel-collector-config.yaml
-              subPath: otel-collector-config.yaml
+              mountPath: /etc/otel-collector
       volumes:
         - name: otel-config-vol
           configMap:
@@ -82,6 +84,9 @@ spec:
     - name: http
       port: 4318
       targetPort: 4318
+    - name: prometheus
+      port: 8889
+      targetPort: 8889
   type: ClusterIP
 ---
 apiVersion: apps/v1

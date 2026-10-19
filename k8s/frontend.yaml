@@ -10,10 +10,19 @@ data:
         <meta charset="UTF-8">
         <title>Sci-Fi Story Generator</title>
         <style>
-            body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #0f172a; color: #e2e8f0; }
+            body { 
+                font-family: sans-serif; 
+                width: 100%; 
+                max-width: 100%; 
+                margin: 0; 
+                padding: 1.5rem; 
+                box-sizing: border-box; 
+                background: #0f172a; 
+                color: #e2e8f0; 
+            }
             .card { background: #1e293b; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; }
             form { display: grid; gap: 0.75rem; }
-            input, textarea, button { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 0.6rem; border-radius: 4px; }
+            input, textarea, button { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 0.6rem; border-radius: 4px; width: 100%; box-sizing: border-box; }
             button { background: #2563eb; cursor: pointer; font-weight: bold; border: none; }
             button:hover { background: #1d4ed8; }
             .story-text { white-space: pre-wrap; background: #090d16; padding: 1rem; border-radius: 4px; border-left: 3px solid #3b82f6; }
