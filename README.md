@@ -119,7 +119,9 @@ export GIGACHAT_MODEL="GigaChat-2"
 export DATABASE_URL="sqlite:///./scifi_stories.db"
 ```
 
-### 2. Running Locally with Docker ComposeStart the full stack including Backend, Frontend, OTel Collector, Prometheus, and Grafana:
+### 2. Running Locally with Docker Compose
+
+Start the full stack including Backend, Frontend, OTel Collector, Prometheus, and Grafana:
 
 ```
 docker compose up --build -d
@@ -130,7 +132,7 @@ docker compose up --build -d
 Before deploying the application via CI/CD, set up the cloud infrastructure using Terraform:
 
 ```bash
-cd infra
+cd tf
 
 # Initialize Terraform working directory and download providers
 terraform init
@@ -234,11 +236,11 @@ Open `http://www.pa99.online:3000` to view active dashboards (via port forwardin
 
 ---
 
-## Quick API Test via `curl`
+## Quick API Test via curl
 
 Generate a new story:
 ```bash
-curl -X POST "[http://www.pa99.online/api/v1/stories](http://www.pa99.online/api/v1/stories)" \
+curl -X POST http://www.pa99.online/api/v1/stories \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Fatal Mistake",
@@ -283,4 +285,4 @@ curl -i [http://www.pa99.online/api/v1/stories](http://www.pa99.online/api/v1/st
 | **CI/CD** | **3 / 3** | [.github/workflows/deploy.yml](.github/workflows/deploy.yml): Automated CI pipeline running tests (`pytest`), building/pushing Docker images, and CD automatically deploying manifests to Cloud.ru Kubernetes. |
 | **Observability** | **2 / 2** | OpenTelemetry instrumentation in [backend/app/main.py](backend/app/main.py), OTel Collector, Prometheus, and auto-provisioned Grafana dashboards tracking traces, request rates, latencies, and payload sizes. |
 | **Alerting on User Impact** | **1 / 1** | Prometheus alerting rules and Grafana configured to alert on active user-facing issues and latency degradation rather than raw server CPU limits. |
-| **On-Call Agent** | **2 / 2** | Automated monitoring and responder agent integration setup to detect alerts, diagnose metrics traces, and trigger resolution paths. |
+| **On-Call Agent** | **0 / 2** | Automated monitoring and responder agent integration setup to detect alerts, diagnose metrics traces, and trigger resolution paths. |
