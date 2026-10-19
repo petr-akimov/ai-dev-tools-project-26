@@ -6,12 +6,12 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
-      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - DATABASE_URL=sqlite:///./sports_scoreboard.db
+      - GIGACHAT_AUTH_KEY=${GIGACHAT_API_KEY}
+      - GIGACHAT_MODEL=GigaChat-2
+      - DATABASE_URL=sqlite:///./scifi_stories.db
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
     volumes:
-      - ./sports_scoreboard.db:/app/sports_scoreboard.db
+      - ./scifi_stories.db:/app/scifi_stories.db
 
   frontend:
     image: nginx:alpine
@@ -19,3 +19,29 @@ services:
       - "8080:80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped

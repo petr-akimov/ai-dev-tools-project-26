@@ -5,8 +5,22 @@ WORKDIR /app
 # Install uv package manager
 RUN pip install uv
 
+# Install all backend dependencies directly
+RUN uv pip install --system \
+    "fastapi>=0.115.0" \
+    "uvicorn[standard]>=0.32.0" \
+    "sqlalchemy>=2.0.35" \
+    "pydantic>=2.9.0" \
+    "gigachat>=0.1.0" \
+    "python-dotenv>=1.0.1" \
+    "opentelemetry-api>=1.20.0" \
+    "opentelemetry-sdk>=1.20.0" \
+    "opentelemetry-instrumentation-fastapi>=0.41b0" \
+    "opentelemetry-instrumentation-sqlalchemy>=0.41b0" \
+    "opentelemetry-instrumentation-logging>=0.41b0" \
+    "opentelemetry-exporter-otlp>=1.20.0"
+
 COPY backend/ /app/
-RUN uv pip install --system -r pyproject.toml || uv pip install --system fastapi uvicorn sqlalchemy gigachat pydantic python-dotenv
 
 EXPOSE 8000
 

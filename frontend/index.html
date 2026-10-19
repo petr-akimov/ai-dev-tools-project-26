@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sci-Fi Story Generator</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #0f172a; color: #e2e8f0; }
+        .card { background: #1e293b; border: 1px solid #334155; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; }
+        form { display: grid; gap: 0.75rem; }
+        input, textarea, button { background: #0f172a; color: #fff; border: 1px solid #475569; padding: 0.6rem; border-radius: 4px; }
+        button { background: #2563eb; cursor: pointer; font-weight: bold; border: none; }
+        button:hover { background: #1d4ed8; }
+        .story-text { white-space: pre-wrap; background: #090d16; padding: 1rem; border-radius: 4px; border-left: 3px solid #3b82f6; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Sci-Fi Chronicles Generator</h1>
+
+    <div class="card">
+        <h2>Create Story</h2>
+        <form id="storyForm">
+            <input type="text" id="title" placeholder="Title" required value="Fatal Mistake">
+            <input type="text" id="heroes" placeholder="Heroes" required value="Miss Wells - scientist, Mr. Hide - scammer">
+            <input type="text" id="when_happens" placeholder="When it happens" required value="Year 2222">
+            <input type="text" id="where_happens" placeholder="Where it happens" required value="Planet Jelly Fish">
+            <textarea id="summary" rows="3" placeholder="Plot summary" required>Miss Wells creates teleportator. But because of the fatal mistake she goes to the past forever.</textarea>
+            <button type="submit">Generate</button>
+        </form>
+    </div>
+
+    <h2>Chronicles Archive</h2>
+    <div id="stories"></div>
+
+    <script>
+        // Use port 8000 when running directly via docker-compose on port 8080, otherwise use relative path
+        const API_URL = window.location.port === "8080" 
+            ? `${window.location.protocol}//${window.location.hostname}:8000/api/v1/stories`
+            : "/api/v1/stories";
+
+        async function loadStories() {
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                const container = document.getElementById("stories");
+                container.innerHTML = data.map(s => `
+                    <div class="card">
+                        <h3>${s.title}</h3>
+                        <p><strong>When:</strong> ${s.when_happens} | <strong>Where:</strong> ${s.where_happens}</p>
+                        <p><strong>Heroes:</strong> ${s.heroes}</p>
+                        <p><strong>Summary:</strong> ${s.summary}</p>
+                        <div class="story-text">${s.ai_story || 'Generating story...'}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load stories:", err);
+            }
+        }
+
+        document.getElementById("storyForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const body = {
+                title: document.getElementById("title").value,
+                heroes: document.getElementById("heroes").value,
+                when_happens: document.getElementById("when_happens").value,
+                where_happens: document.getElementById("where_happens").value,
+                summary: document.getElementById("summary").value
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                });
+                loadStories();
+            } catch (err) {
+                console.error("Failed to create story:", err);
+            }
+        });
+
+        loadStories();
+    </script>
+</body>
+</html>
