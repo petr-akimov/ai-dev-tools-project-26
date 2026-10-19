@@ -80,6 +80,8 @@ flowchart TD
 ├── docker-compose.yml           # Local dev environment with full telemetry stack
 ├── Dockerfile                   # Backend Docker container build definition
 └── pyproject.toml               # Python dependencies and uv configuration
+```
+
 
 ## Environment Setup & Local Development
 
