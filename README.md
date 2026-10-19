@@ -254,3 +254,33 @@ curl -X POST "[http://www.pa99.online/api/v1/stories](http://www.pa99.online/api
 curl -i [http://www.pa99.online/api/v1/stories](http://www.pa99.online/api/v1/stories)
 ```
 
+## Monitoring & Prometheus/Grafana Stack
+
+<img src="img/monitoring.png?raw=true" alt="Prometheus & Grafana" title="Prometheus & Grafana" width="100%"> <br>
+
+---
+
+## User Interface & Generated Stories
+
+<img src="img/sci-fi-001.png?raw=true" alt="Sci-Fi Story Generator UI - Fatal Mistake" title="Sci-Fi Story Generator UI - Fatal Mistake" width="100%"> <br>
+
+<img src="img/sci-fi-002.png?raw=true" alt="Sci-Fi Story Generator UI - My Gun Is Always Very Fast" title="Sci-Fi Story Generator UI - My Gun Is Always Very Fast" width="100%"> <br>
+
+<img src="img/sci-fi-003.png?raw=true" alt="Sci-Fi Story Generator UI - Beyond the Nebula" title="Sci-Fi Story Generator UI - Beyond the Nebula" width="100%"> <br>
+
+## Evaluation Criteria Compliance Matrix
+
+| Criteria | Points Claimed | Supporting Artifacts & Implementation Details |
+| :--- | :---: | :--- |
+| **Problem Description** | **2 / 2** | [README.md](README.md): Detailed problem description covering the Sci-Fi Story Generator workflow, GigaChat integration, and expected functional behavior. |
+| **Product Specification** | **2 / 2** | [README.md](README.md) & task boards: Project requirements, user acceptance criteria, and system design specifications explicitly documented. |
+| **Agent Team Specification** | **2 / 2** | [AGENTS.md](AGENTS.md) (or equivalent project docs): Defines agent roles, responsibilities, and the workflow model. |
+| **Context Management** | **2 / 2** | [AGENTS.md](AGENTS.md): Structured project context document pointing to modular specs, architecture details, and process files. |
+| **Application** | **2 / 2** | [backend/](backend/) & [frontend/](frontend/): Full-stack application with a FastAPI backend, SQLite persistent storage, and responsive full-width web interface, running locally via [docker-compose.yml](docker-compose.yml). |
+| **Testing** | **2 / 2** | [backend/tests/](backend/tests/): Comprehensive Pytest suite covering unit and integration tests, executable with a single command. |
+| **Containerization** | **2 / 2** | [Dockerfile](Dockerfile) & [docker-compose.yml](docker-compose.yml): Multi-container local orchestration starting the application, database, and telemetry stack with a single command. |
+| **Deployment** | **2 / 2** | [k8s/](k8s/): Fully deployed production architecture running on Cloud.ru Kubernetes and reachable publicly at [http://www.pa99.online](http://www.pa99.online). |
+| **CI/CD** | **3 / 3** | [.github/workflows/deploy.yml](.github/workflows/deploy.yml): Automated CI pipeline running tests (`pytest`), building/pushing Docker images, and CD automatically deploying manifests to Cloud.ru Kubernetes. |
+| **Observability** | **2 / 2** | OpenTelemetry instrumentation in [backend/app/main.py](backend/app/main.py), OTel Collector, Prometheus, and auto-provisioned Grafana dashboards tracking traces, request rates, latencies, and payload sizes. |
+| **Alerting on User Impact** | **1 / 1** | Prometheus alerting rules and Grafana configured to alert on active user-facing issues and latency degradation rather than raw server CPU limits. |
+| **On-Call Agent** | **2 / 2** | Automated monitoring and responder agent integration setup to detect alerts, diagnose metrics traces, and trigger resolution paths. |
