@@ -4,6 +4,16 @@ An AI-assisted full-stack application that generates immersive science-fiction s
 
 Built as part of the **AI Dev Tools Zoomcamp 2026** Final Project.
 
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com)
+[![GigaChat](https://img.shields.io/badge/GigaChat-API-green.svg)](https://developers.sber.ru/portal/products/gigachat)
+[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-Observability-purple.svg)](https://opentelemetry.io/)
+[![Docker](https://img.shields.io/badge/Docker-Supported-blue)](https://www.docker.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Cloud.ru-326CE5)](https://cloud.ru/)
+[![Terraform](https://img.shields.io/badge/Terraform-Infrastructure-7B42BC.svg)](https://www.terraform.io/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Cloud.ru](https://img.shields.io/badge/Cloud.ru-Infrastructure-orange.svg)](https://cloud.ru/)
+
 ---
 
 ## Tech Stack
