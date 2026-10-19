@@ -134,21 +134,13 @@ terraform apply
 
 Terraform provisions:
 
-- VPC Network and Subnets.
-- Container Registry.
 - Managed Kubernetes cluster and node group.
-- Persistent Volume (PVC) for SQLite database storage.
-
-Export outputs (e.g., `registry_id`, `k8s_cluster_id`) to populate your GitHub Secrets.
-
-
+- Ingress-Nginx controller.
+- DNS zone and A-record.
 
 #### Local Endpoints
-- **Frontend UI**: `http://www.pa99.online` (или `http://localhost:8080` при локальном запуске)
-- **Backend API Docs**: `http://www.pa99.online/docs` (или `http://localhost:8000/docs`)
-- **OTel Collector Metrics**: `http://localhost:8889/metrics`
-- **Prometheus UI**: `http://localhost:9090`
-- **Grafana UI**: `http://localhost:3000` (Default credentials: `admin` / `admin`)
+- **Frontend UI**: `http://www.pa99.online` 
+- **Backend API Docs**: `http://www.pa99.online/docs`
 
 ---
 
