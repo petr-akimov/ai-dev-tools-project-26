@@ -97,9 +97,10 @@ Copy the configuration template and set your GigaChat API credentials:
 
 ```bash
 cp k8s/configmap-secret.yaml.template k8s/configmap-secret.yaml
-
+```
 
 #### Set the required environment variables:
+
 ```
 export GIGACHAT_API_KEY="YOUR_GIGACHAT_AUTH_KEY"
 export GIGACHAT_MODEL="GigaChat-2"
