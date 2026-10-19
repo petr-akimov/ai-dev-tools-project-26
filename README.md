@@ -208,6 +208,7 @@ The cluster runs OpenTelemetry, Prometheus, and Grafana provisioned automaticall
 To inspect Grafana in the cluster locally via port forwarding:
 ```bash
 kubectl port-forward svc/grafana-svc 3000:3000
+```
 
 Open `http://www.pa99.online:3000` to view active dashboards (via port forwarding or configured Ingress).
 
