@@ -284,5 +284,5 @@ curl -i [http://www.pa99.online/api/v1/stories](http://www.pa99.online/api/v1/st
 | **Deployment** | **2 / 2** | [k8s/](k8s/): Fully deployed production architecture running on Cloud.ru Kubernetes and reachable publicly at [http://www.pa99.online](http://www.pa99.online). |
 | **CI/CD** | **3 / 3** | [.github/workflows/deploy.yml](.github/workflows/deploy.yml): Automated CI pipeline running tests (`pytest`), building/pushing Docker images, and CD automatically deploying manifests to Cloud.ru Kubernetes. |
 | **Observability** | **2 / 2** | OpenTelemetry instrumentation in [backend/app/main.py](backend/app/main.py), OTel Collector, Prometheus, and auto-provisioned Grafana dashboards tracking traces, request rates, latencies, and payload sizes. |
-| **Alerting on User Impact** | **1 / 1** | Prometheus alerting rules and Grafana configured to alert on active user-facing issues and latency degradation rather than raw server CPU limits. |
+| **Alerting on User Impact** | **0 / 1** | Prometheus alerting rules and Grafana configured to alert on active user-facing issues and latency degradation rather than raw server CPU limits. |
 | **On-Call Agent** | **0 / 2** | Automated monitoring and responder agent integration setup to detect alerts, diagnose metrics traces, and trigger resolution paths. |
