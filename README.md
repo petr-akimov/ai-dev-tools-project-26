@@ -59,10 +59,6 @@ flowchart TD
     end
 ```
 
-
-
-
-
 ## Repository Structure
 
 ```
@@ -70,26 +66,39 @@ flowchart TD
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml           # CI/CD: Pytest, Docker Build/Push, K8s Auto-Deploy
+├── AGENTS.md                    # Agent Team Specification & Modular Context Index
 ├── backend/                     # FastAPI core application
 │   ├── app/
-│   │   ├── main.py              # Application entrypoint & OTel Instrumentation
-│   │   ├── config.py            # Environment configurations
 │   │   ├── database.py          # SQLAlchemy SQLite connection
+│   │   ├── main.py              # Application entrypoint & OTel Instrumentation
 │   │   ├── models.py            # DB schema definitions
+│   │   ├── schemas.py           # Pydantic data schemas
 │   │   └── services.py          # GigaChat API integration with custom OTel spans
 │   └── tests/                   # Pytest test suite (Unit & Integration)
+│       ├── conftest.py          # Pytest fixtures & GigaChat/SQLite mocks
+│       └── test_main.py         # FastAPI endpoint integration tests
 ├── frontend/                    # Static Web Interface (index.html)
+├── img/                         # Screenshots for README (UI & Grafana Monitoring)
+│   ├── monitoring.png
+│   ├── sci-fi-001.png
+│   ├── sci-fi-002.png
+│   └── sci-fi-003.png
 ├── k8s/                         # Kubernetes Deployment Manifests
 │   ├── backend.yaml             # SQLite PVC, OTel Collector, Backend Deployment & Service
+│   ├── configmap-secret.yaml.template # Template for GigaChat credentials
 │   ├── frontend.yaml            # Nginx Frontend Deployment, ConfigMap & Service
 │   ├── ingress.yaml             # Ingress rules for www.pa99.online
-│   ├── monitoring.yaml          # Prometheus & Provisioned Grafana Dashboard
-│   └── configmap-secret.yaml.template # Template for GigaChat credentials
+│   └── monitoring.yaml          # Prometheus & Provisioned Grafana Dashboard
+├── tf/                          # Terraform infrastructure manifests
+│   ├── cluster.tf               # Cloud.ru Managed Kubernetes & Node Group
+│   ├── provider.tf              # Terraform provider configuration
+│   └── terraform.tfvars         # Cloud provider variables
 ├── otel-collector-config.yaml   # OpenTelemetry Collector configuration
 ├── prometheus.yml               # Prometheus scrape configuration
 ├── docker-compose.yml           # Local dev environment with full telemetry stack
 ├── Dockerfile                   # Backend Docker container build definition
-└── pyproject.toml               # Python dependencies and uv configuration
+├── pyproject.toml               # Python dependencies, pytest, and uv configuration
+└── README.md                    # Project documentation & evaluation matrix
 ```
 
 
@@ -129,7 +138,7 @@ docker compose up --build -d
 
 ## Environment Setup for Remote Development
 
-### 1. Infrastructure Provisioning (Terraform)
+### Infrastructure Provisioning (Terraform)
 
 Before deploying the application via CI/CD, set up the cloud infrastructure using Terraform:
 
@@ -250,7 +259,7 @@ curl -X POST http://www.pa99.online/api/v1/stories \
 ### Fetch all stories:
 
 ```
-curl -i [http://www.pa99.online/api/v1/stories](http://www.pa99.online/api/v1/stories)
+curl -i http://www.pa99.online/api/v1/stories
 ```
 
 ## Monitoring & Prometheus/Grafana Stack

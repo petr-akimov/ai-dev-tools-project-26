@@ -6,7 +6,6 @@ resource "cloudru_evolution_iam_service_account" "cluster_sa" {
   }
 }
 
-# 2. Назначение роли k8s.user
 resource "cloudru_evolution_iam_permission" "k8s_admin_perm" {
   resource_id = var.project_id
   subject_id  = cloudru_evolution_iam_service_account.cluster_sa.id
@@ -16,7 +15,6 @@ resource "cloudru_evolution_iam_permission" "k8s_admin_perm" {
   }
 }
 
-# 3. Назначение роли nlb.user (для балансировщиков)
 resource "cloudru_evolution_iam_permission" "nlb_admin_perm" {
   resource_id = var.project_id
   subject_id  = cloudru_evolution_iam_service_account.cluster_sa.id
@@ -26,7 +24,6 @@ resource "cloudru_evolution_iam_permission" "nlb_admin_perm" {
   }
 }
 
-# 4. Назначение роли vpc.user (для сетей)
 resource "cloudru_evolution_iam_permission" "vpc_admin_perm" {
   resource_id = var.project_id
   subject_id  = cloudru_evolution_iam_service_account.cluster_sa.id
@@ -36,7 +33,6 @@ resource "cloudru_evolution_iam_permission" "vpc_admin_perm" {
   }
 }
 
-# SNAT Gateway для выхода узлов в интернет
 resource "cloudru_evolution_compute_nat_gateway" "snat" {
   name       = "k8s-internet-snat"
   project_id = var.project_id
@@ -46,7 +42,6 @@ resource "cloudru_evolution_compute_nat_gateway" "snat" {
   }
 }
 
-# MK8S Кластер
 resource "cloudru_evolution_mk8s_cluster" "resource_cluster" {
   name       = "cloudru-minimal-cluster"
   project_id = var.project_id
@@ -90,7 +85,6 @@ resource "cloudru_evolution_mk8s_cluster" "resource_cluster" {
   depends_on = [cloudru_evolution_compute_nat_gateway.snat]
 }
 
-# Группа узлов (Node Pool)
 resource "cloudru_evolution_mk8s_node_pool" "resource_node_pool" {
   cluster_id = cloudru_evolution_mk8s_cluster.resource_cluster.id
   name       = "cloudru-minimal-nodepool"
@@ -108,7 +102,6 @@ resource "cloudru_evolution_mk8s_node_pool" "resource_node_pool" {
   }
   update_configuration = {
     strategy = "NODE_POOL_UPDATE_STRATEGY_ROLLING_UPDATE"
-    # Явно задаем политику, чтобы избежать несоответствия в стейте
     rolling_update_policy = {
       max_surge       = 1
       max_unavailable = 0
@@ -138,20 +131,6 @@ resource "cloudru_evolution_mk8s_cluster_addon" "resource_cluster_addon" {
   depends_on = [cloudru_evolution_mk8s_node_pool.resource_node_pool]
 }
 
-#output "cluster_public_endpoint" {
-#  description = "Публичный эндпоинт Control Plane кластера Kubernetes"
-#  value       = cloudru_evolution_mk8s_cluster.resource_cluster.network_configuration.cp_endpoints[1].address
-#}
-
-#output "cluster_cp_endpoints_all" {
-#  value = [
-#    for ep in cloudru_evolution_mk8s_cluster.resource_cluster.network_configuration.cp_endpoints : {
-#      address = ep.address
-#      network = ep.network
-#    }
-#  ]
-#}
-
 output "cluster_cp_endpoint" {
   value = [
     for ep in cloudru_evolution_mk8s_cluster.resource_cluster.network_configuration.cp_endpoints :
@@ -159,10 +138,6 @@ output "cluster_cp_endpoint" {
     if ep.network == "NETWORK_TYPE_PUBLIC"
   ][0]
 }
-
-#output "cluster_cp_endpoint" {
-#  value = cloudru_evolution_mk8s_cluster.resource_cluster.network_configuration.cp_endpoints[0].address
-#}
 
 data "cloudru_evolution_mk8s_kube_config_collection" "datasource_kube_config" {
   cluster_id   = cloudru_evolution_mk8s_cluster.resource_cluster.id
@@ -173,13 +148,7 @@ output "kube_config_file" {
   sensitive = true
 }
 
-# 1. Генерация ~/.kube/config из terraform output
-# 2. Извлечение IP ingress-контроллера через kubectl
-# 3. Создание DNS A-записи www.pa99.online
-
-# --- 1. Генерация kubeconfig ---
 resource "null_resource" "kubeconfig" {
-  # Пересоздаём, если меняются креды или кластер
   triggers = {
     cluster_id   = cloudru_evolution_mk8s_cluster.resource_cluster.id
     auth_key_id  = var.auth_key_id
@@ -204,7 +173,6 @@ resource "null_resource" "kubeconfig" {
   depends_on = [cloudru_evolution_mk8s_cluster_addon.resource_cluster_addon]
 }
 
-# --- 2. Извлечение IP ingress-контроллера ---
 data "external" "ingress_ip" {
   program = ["bash", "-c", <<-EOT
     set -e
@@ -226,7 +194,6 @@ data "external" "ingress_ip" {
   depends_on = [null_resource.kubeconfig]
 }
 
-# --- 3. DNS A-запись ---
 resource "cloudru_evolution_dns_public_zone" "pa99" {
   project_id  = var.project_id
   name        = "pa99.online."
