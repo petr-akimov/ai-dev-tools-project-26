@@ -24,35 +24,36 @@ from .services import generate_story_service
 
 # --- Setup OpenTelemetry OTLP Exporters ---
 is_testing = "pytest" in sys.modules or os.getenv("ENVIRONMENT") == "test"
-OTEL_COLLECTOR_URL = os.getenv(
-    "OTEL_EXPORTER_OTLP_ENDPOINT",
-    "http://localhost:4317" if is_testing else "http://otel-collector:4317"
-)
 
-# Traces setup
-trace.set_tracer_provider(TracerProvider())
-tracer_provider = trace.get_tracer_provider()
-try:
-    span_exporter = OTLPSpanExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
-    tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
-except Exception:
-    pass
+if not is_testing:
+    OTEL_COLLECTOR_URL = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
 
-# Metrics setup
-try:
-    metric_reader = PeriodicExportingMetricReader(
-        OTLPMetricExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
-    )
-    meter_provider = MeterProvider(metric_readers=[metric_reader])
-    metrics.set_meter_provider(meter_provider)
-except Exception:
-    pass
+    # Traces setup
+    trace.set_tracer_provider(TracerProvider())
+    tracer_provider = trace.get_tracer_provider()
+    try:
+        span_exporter = OTLPSpanExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
+        tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
+    except Exception:
+        pass
 
-# Auto-instrument Logging
-try:
-    LoggingInstrumentor().instrument(set_logging_format=True)
-except Exception:
-    pass
+    # Metrics setup
+    try:
+        metric_reader = PeriodicExportingMetricReader(
+            OTLPMetricExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
+        )
+        meter_provider = MeterProvider(metric_readers=[metric_reader])
+        metrics.set_meter_provider(meter_provider)
+    except Exception:
+        pass
+
+    # Auto-instrument Logging
+    try:
+        LoggingInstrumentor().instrument(set_logging_format=True)
+    except Exception:
+        pass
+else:
+    trace.set_tracer_provider(TracerProvider())
 
 # Create database tables automatically on startup
 Base.metadata.create_all(bind=engine)
