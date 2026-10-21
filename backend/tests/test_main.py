@@ -36,7 +36,7 @@ def test_create_story_success(client: TestClient) -> None:
     assert data["where_happens"] == payload["where_happens"]
     assert data["summary"] == payload["summary"]
     assert "Mocked sci-fi short story" in data["ai_story"]
-    assert data["model_used"] == "mock-gigachat-model"
+    assert data["model_used"] == "GigaChat-2"
 
     # Проверяем, что история появилась в общем списке /api/v1/stories
     list_response = client.get("/api/v1/stories")
