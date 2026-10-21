@@ -28,6 +28,8 @@ jobs:
           pytest backend/tests/ -v
         env:
           GIGACHAT_AUTH_KEY: "dummy-key-for-tests"
+          OTEL_EXPORTER_OTLP_ENDPOINT: "http://127.0.0.1:4317"
+
 
   build-and-push:
     needs: test

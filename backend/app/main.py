@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import List
 from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,23 +23,36 @@ from .schemas import StoryCreate, StoryResponse
 from .services import generate_story_service
 
 # --- Setup OpenTelemetry OTLP Exporters ---
-OTEL_COLLECTOR_URL = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://otel-collector:4317")
+is_testing = "pytest" in sys.modules or os.getenv("ENVIRONMENT") == "test"
+OTEL_COLLECTOR_URL = os.getenv(
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "http://localhost:4317" if is_testing else "http://otel-collector:4317"
+)
 
 # Traces setup
 trace.set_tracer_provider(TracerProvider())
 tracer_provider = trace.get_tracer_provider()
-span_exporter = OTLPSpanExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
-tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
+try:
+    span_exporter = OTLPSpanExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
+    tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
+except Exception:
+    pass
 
 # Metrics setup
-metric_reader = PeriodicExportingMetricReader(
-    OTLPMetricExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
-)
-meter_provider = MeterProvider(metric_readers=[metric_reader])
-metrics.set_meter_provider(meter_provider)
+try:
+    metric_reader = PeriodicExportingMetricReader(
+        OTLPMetricExporter(endpoint=OTEL_COLLECTOR_URL, insecure=True)
+    )
+    meter_provider = MeterProvider(metric_readers=[metric_reader])
+    metrics.set_meter_provider(meter_provider)
+except Exception:
+    pass
 
 # Auto-instrument Logging
-LoggingInstrumentor().instrument(set_logging_format=True)
+try:
+    LoggingInstrumentor().instrument(set_logging_format=True)
+except Exception:
+    pass
 
 # Create database tables automatically on startup
 Base.metadata.create_all(bind=engine)
