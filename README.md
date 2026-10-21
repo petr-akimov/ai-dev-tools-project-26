@@ -93,7 +93,7 @@ flowchart TD
 ```
 
 
-## Environment Setup & Local Development
+## Environment Setup for Local Development
 
 ### Prerequisites
 
@@ -127,7 +127,9 @@ Start the full stack including Backend, Frontend, OTel Collector, Prometheus, an
 docker compose up --build -d
 ```
 
-### 3. Infrastructure Provisioning (Terraform)
+## Environment Setup for Remote Development
+
+### 1. Infrastructure Provisioning (Terraform)
 
 Before deploying the application via CI/CD, set up the cloud infrastructure using Terraform:
 
@@ -149,10 +151,6 @@ Terraform provisions:
 - Managed Kubernetes cluster and node group.
 - Ingress-Nginx controller.
 - DNS zone and A-record.
-
-#### Local Endpoints
-- **Frontend UI**: `http://www.pa99.online` 
-- **Backend API Docs**: `http://www.pa99.online/docs`
 
 ---
 
@@ -192,10 +190,9 @@ Configure the following secrets under **Settings > Secrets and variables > Actio
 
 | Secret Name | Description |
 | :--- | :--- |
-| `DOCKERHUB_USERNAME` | Docker Hub account username |
-| `DOCKERHUB_TOKEN` | Docker Hub Access Token |
+| `DOCKER_HUB_PASSWORD` | Docker Hub Access Token |
 | `GIGACHAT_API_KEY` | GigaChat API Key for LLM story generation |
-| `CLOUD_RU_KUBECONFIG` | Base64-encoded `kubeconfig` for Cloud.ru cluster access |
+| `KUBECONFIG_BASE64` | Base64-encoded `kubeconfig` for Cloud.ru cluster access |
 
 ---
 
