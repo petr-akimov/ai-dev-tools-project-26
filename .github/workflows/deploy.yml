@@ -21,11 +21,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv pip install --system fastapi uvicorn[standard] sqlalchemy pydantic gigachat python-dotenv pytest httpx starlette anyio ruff mypy opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-instrumentation-sqlalchemy opentelemetry-instrumentation-logging opentelemetry-exporter-otlp
+          uv pip install --system fastapi uvicorn[standard] sqlalchemy pydantic gigachat python-dotenv pytest pytest-cov httpx starlette anyio ruff mypy opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-fastapi opentelemetry-instrumentation-sqlalchemy opentelemetry-instrumentation-logging opentelemetry-exporter-otlp
 
-      - name: Run linter and tests
+      - name: Run linter and tests with coverage
         run: |
-          pytest
+          pytest backend/tests/ -v
         env:
           GIGACHAT_AUTH_KEY: "dummy-key-for-tests"
 
