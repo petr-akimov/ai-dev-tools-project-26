@@ -268,6 +268,12 @@ curl -i http://www.pa99.online/api/v1/stories
 
 ---
 
+## Kubernetes cluster and application status
+
+<img src="img/k8s.png?raw=true" alt="Kubernetes status" title="Kubernetes cluster and application status" width="100%"> <br>
+
+---
+
 ## User Interface & Generated Stories
 
 <img src="img/sci-fi-001.png?raw=true" alt="Sci-Fi Story Generator UI - Fatal Mistake" title="Sci-Fi Story Generator UI - Fatal Mistake" width="100%"> <br>
